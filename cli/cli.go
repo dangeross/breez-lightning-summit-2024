@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/breez/breez-sdk-go/breez_sdk"
 	"github.com/dangeross/breez-lightning-summit-2024/internal/util"
 	"github.com/desertbit/grumble"
 	"github.com/fatih/color"
@@ -17,6 +18,7 @@ type Cli struct {
 	*grumble.App
 
 	log *logrus.Logger
+	sdk *breez_sdk.BlockingBreezServices
 
 	dataDir string
 	config  *Config
@@ -82,11 +84,18 @@ func Run() {
 
 		// Init log
 		c.initLog()
+		breez_sdk.SetLogStream(c)
 
 		return c.load()
 	})
 
 	c.OnClose(func() (err error) {
+		if c.sdk != nil {
+			c.sdk.Disconnect()
+			c.sdk.Destroy()
+			c.sdk = nil
+		}
+
 		return
 	})
 
